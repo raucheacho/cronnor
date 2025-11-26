@@ -8,7 +8,7 @@ interface.
 
 - 🕒 **Cron-based scheduling** using standard cron expressions
 - 🌐 **HTTP job execution** with configurable methods (GET, POST, PUT, etc.)
-- 💻 **Modern web interface** built with HTMX for real-time updates
+- 💻 **Modern web interface** built with HTMX and Tailwind CSS v4
 - 📊 **Execution history** and detailed logging
 - 🔄 **Live status updates** with 3-second polling
 - 🐳 **Docker ready** with multi-stage builds
@@ -36,6 +36,7 @@ open http://localhost:8080
 **Prerequisites:**
 
 - Go 1.23 or later
+- Node.js & npm (for Tailwind CSS)
 
 ```bash
 # Download dependencies
@@ -86,7 +87,7 @@ open http://localhost:8080
 - **Backend**: Go 1.23 with Chi router
 - **Scheduler**: robfig/cron v3
 - **Database**: SQLite with modernc.org/sqlite (pure Go)
-- **Frontend**: HTMX for reactive updates
+- **Frontend**: HTMX, Tailwind CSS v4
 - **Containerization**: Docker multi-stage builds
 
 ### Project Structure
@@ -103,11 +104,14 @@ cronnor/
 │   └── storage/         # Database layer
 ├── migrations/          # SQL schema
 ├── web/
+│   ├── node_modules/    # Frontend dependencies
 │   ├── static/          # CSS and assets
-│   └── templates/       # HTML templates
+│   ├── templates/       # HTML templates
+│   └── package.json     # Frontend build config
 ├── Dockerfile
 ├── docker-compose.yml
-└── Makefile
+├── Makefile
+└── .air.toml            # Live reload config
 ```
 
 ## ⚙️ Configuration
@@ -181,11 +185,16 @@ make fmt
 
 ### Development Mode (with auto-reload)
 
-Requires [air](https://github.com/cosmtrek/air):
+Requires [air](https://github.com/cosmtrek/air) and npm:
 
 ```bash
 make dev
 ```
+
+This command runs both:
+
+1. **Air**: Recompiles and restarts the Go server on file changes.
+2. **Tailwind CLI**: Watches for changes in HTML/JS and rebuilds CSS.
 
 ## 📝 API Reference
 
