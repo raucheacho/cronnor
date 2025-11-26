@@ -1,51 +1,28 @@
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Dashboard - Cronnor</title>
-    <link rel="stylesheet" href="/static/style.css" />
-    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
-  </head>
-  <body>
-    <nav class="navbar">
-      <div class="container">
-        <div class="nav-brand">
-          <h1>⏰ Cronnor</h1>
-          <p class="tagline">HTTP Cron Job Scheduler</p>
-        </div>
-        <div class="nav-links">
-          <a href="/jobs" class="btn btn-secondary">Dashboard</a>
-          <a href="/jobs/new" class="btn btn-primary">+ New Job</a>
-        </div>
-      </div>
-    </nav>
+{{ define "title" }}Dashboard - Cronnor{{ end }}
 
-    <main class="container">
-      <div class="dashboard-header">
-        <div>
-          <h2>Scheduled Jobs</h2>
-          <p class="subtitle">
-            Manage your HTTP cron jobs with real-time status updates
-          </p>
-        </div>
-        <a href="/jobs/new" class="btn btn-primary">+ Create Job</a>
-      </div>
+{{ define "extra_head" }}
+<script src="https://unpkg.com/htmx.org@1.9.10"></script>
+{{ end }}
 
-      <div
-        id="jobs-container"
-        hx-get="/jobs/list"
-        hx-trigger="load, every 3s"
-        hx-swap="innerHTML"
-      >
-        <div class="loading">Loading jobs...</div>
-      </div>
-    </main>
+{{ define "content" }}
+<div class="dashboard-header">
+  <div>
+    <h2>Scheduled Jobs</h2>
+    <p class="subtitle">
+      Manage your HTTP cron jobs with real-time status updates
+    </p>
+  </div>
+  <a href="/jobs/new" class="btn btn-primary">+ Create Job</a>
+</div>
 
-    <footer class="footer">
-      <div class="container">
-        <p>&copy; 2025 Cronnor • Lightweight HTTP Cron Scheduler</p>
-      </div>
-    </footer>
-  </body>
-</html>
+<div
+  id="jobs-container"
+  hx-get="/jobs/list"
+  hx-trigger="load, every 3s"
+  hx-swap="innerHTML"
+>
+  <div class="loading">Loading jobs...</div>
+</div>
+{{ end }}
+
+{{ template "layout.html" . }}
