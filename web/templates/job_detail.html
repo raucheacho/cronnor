@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{{ .Job.Name }} - Cronnor</title>
+    <link rel="stylesheet" href="/static/style.css" />
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+  </head>
+  <body>
+    <nav class="navbar">
+      <div class="container">
+        <div class="nav-brand">
+          <h1>⏰ Cronnor</h1>
+          <p class="tagline">HTTP Cron Job Scheduler</p>
+        </div>
+        <div class="nav-links">
+          <a href="/jobs" class="btn btn-secondary">Dashboard</a>
+          <a href="/jobs/new" class="btn btn-primary">+ New Job</a>
+        </div>
+      </div>
+    </nav>
+
+    <main class="container">
+      <div class="job-detail">
+        <div class="detail-header">
+          <div>
+            <h2>{{ .Job.Name }}</h2>
+            <span class="status-badge {{ statusClass .Job.LastStatus.String }}">
+              {{ if .Job.LastStatus.Valid }}{{ .Job.LastStatus.String }}{{ else
+              }}PENDING{{ end }}
+            </span>
+          </div>
+          <div class="detail-actions">
+            <a href="/jobs/{{ .Job.ID }}/edit" class="btn btn-primary">Edit</a>
+            <a href="/jobs" class="btn btn-secondary">← Back</a>
+          </div>
+        </div>
+
+        <div class="info-grid">
+          <div class="info-card">
+            <h3>Configuration</h3>
+            <div class="detail-row">
+              <span class="label">URL:</span>
+              <span class="value">{{ .Job.URL }}</span>
+            </div>
+            <div class="detail-row">
+              <span class="label">Method:</span>
+              <span class="value">{{ .Job.Method }}</span>
+            </div>
+            <div class="detail-row">
+              <span class="label">Cron Expression:</span>
+              <span class="value mono">{{ .Job.CronExpr }}</span>
+            </div>
+            {{ if .Job.Payload.Valid }}
+            <div class="detail-row">
+              <span class="label">Payload:</span>
+              <pre class="payload-preview">{{ .Job.Payload.String }}</pre>
+            </div>
+            {{ end }}
+          </div>
+
+          <div class="info-card">
+            <h3>Status</h3>
+            <div class="detail-row">
+              <span class="label">Active:</span>
+              <span class="value"
+                >{{ if .Job.IsActive }}✅ Yes{{ else }}❌ No{{ end }}</span
+              >
+            </div>
+            <div class="detail-row">
+              <span class="label">Created:</span>
+              <span class="value">{{ formatTime .Job.CreatedAt }}</span>
+            </div>
+            {{ if .Job.LastRunAt.Valid }}
+            <div class="detail-row">
+              <span class="label">Last Run:</span>
+              <span class="value">{{ formatTime .Job.LastRunAt.Time }}</span>
+            </div>
+            {{ end }}
+            <div class="detail-row">
+              <span class="label">Next Run:</span>
+              <span class="value">{{ nextRun .Job.CronExpr }}</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="logs-section">
+          <h3>Execution History</h3>
+          {{ if not .Logs }}
+          <p class="empty-message">
+            No execution logs yet. The job hasn't run.
+          </p>
+          {{ else }}
+          <div class="logs-table-container">
+            <table class="logs-table">
+              <thead>
+                <tr>
+                  <th>Time</th>
+                  <th>Status</th>
+                  <th>HTTP Code</th>
+                  <th>Duration</th>
+                  <th>Details</th>
+                </tr>
+              </thead>
+              <tbody>
+                {{ range .Logs }}
+                <tr>
+                  <td>{{ formatTime .CreatedAt }}</td>
+                  <td>
+                    <span class="status-badge {{ statusClass .Status }}">
+                      {{ .Status }}
+                    </span>
+                  </td>
+                  <td>
+                    {{ if .HTTPCode.Valid }}{{ .HTTPCode.Int64 }}{{ else }}-{{
+                    end }}
+                  </td>
+                  <td>
+                    {{ if .DurationMs.Valid }}{{ .DurationMs.Int64 }}ms{{ else
+                    }}-{{ end }}
+                  </td>
+                  <td class="log-details">
+                    {{ if .ErrorMessage.Valid }}
+                    <span class="error-message"
+                      >{{ .ErrorMessage.String }}</span
+                    >
+                    {{ else if .ResponseBody.Valid }}
+                    <details>
+                      <summary>Response</summary>
+                      <pre>{{ .ResponseBody.String }}</pre>
+                    </details>
+                    {{ else }} - {{ end }}
+                  </td>
+                </tr>
+                {{ end }}
+              </tbody>
+            </table>
+          </div>
+          {{ end }}
+        </div>
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="container">
+        <p>&copy; 2025 Cronnor • Lightweight HTTP Cron Scheduler</p>
+      </div>
+    </footer>
+  </body>
+</html>

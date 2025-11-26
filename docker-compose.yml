@@ -1,0 +1,14 @@
+version: '3.8'
+
+services:
+  cronnor:
+    build: .
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./data:/app/data
+    environment:
+      - PORT=8080
+      - DB_PATH=/app/data/cronnor.db
+      - MIGRATION_PATH=/app/migrations/001_initial_schema.sql
+    restart: unless-stopped

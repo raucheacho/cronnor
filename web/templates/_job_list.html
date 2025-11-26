@@ -1,0 +1,78 @@
+{{ if not .Jobs }}
+<div class="empty-state">
+  <h3>No jobs yet</h3>
+  <p>Create your first HTTP cron job to get started!</p>
+  <a href="/jobs/new" class="btn btn-primary">+ Create First Job</a>
+</div>
+{{ else }}
+<div class="jobs-grid">
+  {{ range .Jobs }}
+  <div class="job-card {{ if not .IsActive }}job-inactive{{ end }}">
+    <div class="job-header">
+      <h3>{{ .Name }}</h3>
+      <div class="job-actions">
+        <button
+          hx-post="/jobs/{{ .ID }}/toggle"
+          hx-target="#jobs-container"
+          hx-swap="innerHTML"
+          class="btn btn-sm {{ if .IsActive }}btn-warning{{ else }}btn-success{{ end }}"
+        >
+          {{ if .IsActive }}⏸ Disable{{ else }}▶ Enable{{ end }}
+        </button>
+        <button
+          hx-post="/jobs/{{ .ID }}/run"
+          hx-swap="none"
+          class="btn btn-sm btn-primary"
+        >
+          ▶ Run Now
+        </button>
+      </div>
+    </div>
+
+    <div class="job-details">
+      <div class="detail-row">
+        <span class="label">URL:</span>
+        <span class="value">{{ .Method }} {{ .URL }}</span>
+      </div>
+      <div class="detail-row">
+        <span class="label">Schedule:</span>
+        <span class="value mono">{{ .CronExpr }}</span>
+      </div>
+      <div class="detail-row">
+        <span class="label">Next Run:</span>
+        <span class="value">{{ nextRun .CronExpr }}</span>
+      </div>
+      {{ if .LastRunAt.Valid }}
+      <div class="detail-row">
+        <span class="label">Last Run:</span>
+        <span class="value">{{ formatTime .LastRunAt.Time }}</span>
+      </div>
+      {{ end }} {{ if .LastStatus.Valid }}
+      <div class="detail-row">
+        <span class="label">Status:</span>
+        <span class="status-badge {{ statusClass .LastStatus.String }}">
+          {{ .LastStatus.String }}
+        </span>
+      </div>
+      {{ end }}
+    </div>
+
+    <div class="job-footer">
+      <a href="/jobs/{{ .ID }}" class="btn btn-sm btn-secondary"
+        >View Details</a
+      >
+      <a href="/jobs/{{ .ID }}/edit" class="btn btn-sm btn-secondary">Edit</a>
+      <button
+        hx-post="/jobs/{{ .ID }}/delete"
+        hx-confirm="Are you sure you want to delete this job?"
+        hx-target="#jobs-container"
+        hx-swap="innerHTML"
+        class="btn btn-sm btn-danger"
+      >
+        Delete
+      </button>
+    </div>
+  </div>
+  {{ end }}
+</div>
+{{ end }}

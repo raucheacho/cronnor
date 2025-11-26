@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ if .Job }}Edit Job{{ else }}New Job{{ end }} - Cronnor</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <div class="nav-brand">
+                <h1>⏰ Cronnor</h1>
+                <p class="tagline">HTTP Cron Job Scheduler</p>
+            </div>
+            <div class="nav-links">
+                <a href="/jobs" class="btn btn-secondary">Dashboard</a>
+                <a href="/jobs/new" class="btn btn-primary">+ New Job</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container">
+        <div class="form-container-wide">
+            <div class="form-header">
+                <h2>{{ if .Job }}Edit Job{{ else }}Create New Job{{ end }}</h2>
+                <div class="form-actions-top">
+                    <button type="submit" form="job-form" class="btn btn-primary">
+                        {{ if .Job }}Update{{ else }}Create{{ end }}
+                    </button>
+                    <a href="/jobs" class="btn btn-secondary">Cancel</a>
+                </div>
+            </div>
+
+            <form 
+                id="job-form"
+                {{ if .Job }}
+                action="/jobs/{{ .Job.ID }}" 
+                {{ else }}
+                action="/jobs"
+                {{ end }}
+                method="POST"
+                class="job-form-grid"
+            >
+                <div class="form-section">
+                    <h3>Basic Info</h3>
+                    <div class="form-group">
+                        <label for="name">Job Name</label>
+                        <input 
+                            type="text" 
+                            id="name" 
+                            name="name" 
+                            required
+                            {{ if .Job }}value="{{ .Job.Name }}"{{ end }}
+                            placeholder="Daily Health Check"
+                        >
+                    </div>
+
+                    <div class="form-group">
+                        <label for="url">Target URL</label>
+                        <input 
+                            type="url" 
+                            id="url" 
+                            name="url" 
+                            required
+                            {{ if .Job }}value="{{ .Job.URL }}"{{ end }}
+                            placeholder="https://api.example.com/webhook"
+                        >
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="method">Method</label>
+                            <select id="method" name="method" required>
+                                <option value="GET" {{ if and .Job (eq .Job.Method "GET") }}selected{{ end }}>GET</option>
+                                <option value="POST" {{ if and .Job (eq .Job.Method "POST") }}selected{{ else if not .Job }}selected{{ end }}>POST</option>
+                                <option value="PUT" {{ if and .Job (eq .Job.Method "PUT") }}selected{{ end }}>PUT</option>
+                                <option value="PATCH" {{ if and .Job (eq .Job.Method "PATCH") }}selected{{ end }}>PATCH</option>
+                                <option value="DELETE" {{ if and .Job (eq .Job.Method "DELETE") }}selected{{ end }}>DELETE</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h3>Schedule</h3>
+                    <div class="form-group">
+                        <label for="schedule_type">Type</label>
+                        <select id="schedule_type" onchange="updateCronExpression()">
+                            <option value="preset">Presets</option>
+                            <option value="simple">Simple</option>
+                            <option value="custom">Custom</option>
+                        </select>
+                    </div>
+
+                    <div id="preset_options" class="form-group">
+                        <label for="preset_select">Frequency</label>
+                        <select id="preset_select" onchange="updateCronExpression()">
+                            <option value="0 */5 * * * *">Every 5 min</option>
+                            <option value="0 */15 * * * *">Every 15 min</option>
+                            <option value="0 */30 * * * *">Every 30 min</option>
+                            <option value="0 0 * * * *">Hourly</option>
+                            <option value="0 0 */2 * * *">Every 2 hours</option>
+                            <option value="0 0 */6 * * *">Every 6 hours</option>
+                            <option value="0 0 0 * * *">Daily midnight</option>
+                            <option value="0 0 9 * * *">Daily 9 AM</option>
+                            <option value="0 0 12 * * *">Daily noon</option>
+                            <option value="0 0 0 * * 0">Weekly Sun</option>
+                            <option value="0 0 0 * * 1">Weekly Mon</option>
+                            <option value="0 0 0 1 * *">Monthly 1st</option>
+                        </select>
+                    </div>
+
+                    <div id="simple_builder" style="display: none;">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="simple_interval">Every</label>
+                                <input type="number" id="simple_interval" value="5" min="1" onchange="updateCronExpression()">
+                            </div>
+                            <div class="form-group">
+                                <label for="simple_unit">Unit</label>
+                                <select id="simple_unit" onchange="updateCronExpression()">
+                                    <option value="minutes">Min</option>
+                                    <option value="hours">Hours</option>
+                                    <option value="days">Days</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div id="time_picker" class="form-group" style="display: none;">
+                            <label for="simple_time">At</label>
+                            <input type="time" id="simple_time" value="00:00" onchange="updateCronExpression()">
+                        </div>
+                    </div>
+
+                    <div id="custom_input" class="form-group" style="display: none;">
+                        <label for="custom_cron">Expression</label>
+                        <input 
+                            type="text" 
+                            id="custom_cron" 
+                            placeholder="* * * * *"
+                            class="mono"
+                            onchange="updateCronExpression()"
+                        >
+                    </div>
+
+                    <div class="cron-result">
+                        <input 
+                            type="text" 
+                            id="cron_expr" 
+                            name="cron_expr" 
+                            required
+                            {{ if .Job }}value="{{ .Job.CronExpr }}"{{ end }}
+                            placeholder="*/5 * * * *"
+                            class="mono"
+                            readonly
+                        >
+                        <small id="cron_description">Every 5 minutes</small>
+                    </div>
+                </div>
+
+                <div class="form-section form-section-full">
+                    <h3>Payload (Optional)</h3>
+                    <textarea 
+                        id="payload" 
+                        name="payload" 
+                        rows="4"
+                        placeholder='{"key": "value"}'
+                        class="mono"
+                    >{{ if and .Job .Job.Payload.Valid }}{{ .Job.Payload.String }}{{ end }}</textarea>
+                </div>
+            </form>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2025 Cronnor • Lightweight HTTP Cron Scheduler</p>
+        </div>
+    </footer>
+
+    <script>
+    function updateCronExpression() {
+        var scheduleType = document.getElementById('schedule_type').value;
+        var cronInput = document.getElementById('cron_expr');
+        var description = document.getElementById('cron_description');
+        
+        document.getElementById('preset_options').style.display = scheduleType === 'preset' ? 'block' : 'none';
+        document.getElementById('simple_builder').style.display = scheduleType === 'simple' ? 'block' : 'none';
+        document.getElementById('custom_input').style.display = scheduleType === 'custom' ? 'block' : 'none';
+        
+        var cronExpr = '';
+        var desc = '';
+        
+        if (scheduleType === 'preset') {
+            var preset = document.getElementById('preset_select');
+            cronExpr = preset.value;
+            desc = preset.options[preset.selectedIndex].text;
+        } else if (scheduleType === 'simple') {
+            var interval = document.getElementById('simple_interval').value;
+            var unit = document.getElementById('simple_unit').value;
+            var timePicker = document.getElementById('time_picker');
+            
+            if (unit === 'minutes') {
+                cronExpr = '0 */' + interval + ' * * * *';
+                desc = 'Every ' + interval + ' min';
+                timePicker.style.display = 'none';
+            } else if (unit === 'hours') {
+                cronExpr = '0 0 */' + interval + ' * * *';
+                desc = 'Every ' + interval + ' hour' + (interval > 1 ? 's' : '');
+                timePicker.style.display = 'none';
+            } else if (unit === 'days') {
+                timePicker.style.display = 'block';
+                var time = document.getElementById('simple_time').value.split(':');
+                cronExpr = '0 ' + time[1] + ' ' + time[0] + ' */' + interval + ' * *';
+                desc = 'Every ' + interval + ' day' + (interval > 1 ? 's' : '') + ' at ' + document.getElementById('simple_time').value;
+            }
+        } else if (scheduleType === 'custom') {
+            cronExpr = document.getElementById('custom_cron').value;
+            desc = 'Custom';
+        }
+        
+        cronInput.value = cronExpr;
+        description.textContent = desc;
+    }
+    
+    document.addEventListener('DOMContentLoaded', function() {
+        var cronInput = document.getElementById('cron_expr');
+        if (cronInput.value) {
+            document.getElementById('schedule_type').value = 'custom';
+            document.getElementById('custom_cron').value = cronInput.value;
+            updateCronExpression();
+        } else {
+            updateCronExpression();
+        }
+    });
+    </script>
+</body>
+</html>
