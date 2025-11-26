@@ -5,14 +5,14 @@
 {{ end }}
 
 {{ define "content" }}
-<div class="dashboard-header">
+<div class="flex justify-between items-center mb-8">
   <div>
-    <h2>Scheduled Jobs</h2>
-    <p class="subtitle">
+    <h2 class="text-3xl font-bold mb-2">Scheduled Jobs</h2>
+    <p class="text-text-muted text-base">
       Manage your HTTP cron jobs with real-time status updates
     </p>
   </div>
-  <a href="/jobs/new" class="btn btn-primary">+ Create Job</a>
+  <a href="/jobs/new" class="px-4 py-2 rounded-lg text-sm font-semibold transition-all bg-primary text-white hover:bg-primary-dark">+ Create Job</a>
 </div>
 
 <div
@@ -21,7 +21,7 @@
   hx-trigger="load, every 3s"
   hx-swap="innerHTML"
 >
-  <div class="loading">Loading jobs...</div>
+  <div class="text-center p-8 text-text-muted">Loading jobs...</div>
 </div>
 {{ end }}
 

@@ -12,9 +12,14 @@ help: ## Show this help message
 	@echo "Available targets:"
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  %-15s %s\n", $$1, $$2}'
 
-build: ## Build the binary
+build: css-build ## Build the application
 	@echo "Building $(BINARY_NAME)..."
 	@go build -o $(BINARY_NAME) ./cmd/server
+
+# Build CSS
+css-build:
+	@echo "Building CSS..."
+	@cd web && npm run build:css
 
 run: build ## Run the application locally
 	@echo "Starting Cronnor..."
@@ -50,9 +55,16 @@ docker-stop: ## Stop Docker Compose
 docker-logs: ## View Docker logs
 	@docker-compose logs -f
 
-dev: ## Run in development mode with auto-reload (requires air)
+dev: ## Run in development mode (Air + Tailwind)
+	@echo "Starting development environment..."
+	@make -j2 air-watch css-watch
+
+air-watch:
 	@command -v air > /dev/null 2>&1 || (echo "Installing air..." && go install github.com/cosmtrek/air@latest)
 	@air
+
+css-watch:
+	@cd web && npm run watch:css
 
 fmt: ## Format code
 	@echo "Formatting code..."
